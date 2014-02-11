@@ -44,7 +44,7 @@
 			width: 1010px;
 		}
 
-		#filename-input	{
+		#filter-input	{
 			margin-top: 9px;
 			width: 300px;
 			margin-right: 10px;
@@ -77,6 +77,9 @@
 	<button id="button-open-file" class="btn btn-small btn-inverse"><i class="icon-search icon-white"></i> Open FLUIG log</button>
 	<button class="btn btn-small btn-inverse active" data-toggle="button" id="button-autoscroll"><i class="icon-refresh icon-white"></i> Autoscroll</button>
 
+	<input type="text" id="filter-input">
+	<button class="btn btn-small btn-inverse" data-toggle="button" id="button-filter"><i class="icon-filter icon-white"></i> Apply filter</button>
+
 </div>
 <div id="tail" class="monospace">
 	<div class="well message">No file open yet</div>
@@ -90,16 +93,12 @@
 	// init script
 	$(function(){
 		var autoscroll = true;
-
-		$('#filename-input').tooltip({title:'Enter full path to file you wish to tail', placement:'bottom'});
+		var filterApplied = false;
 
 		var defaultPort = 8081;
 		var socket = io.connect(null,defaultPort);
 		var buffer = $('#tail');
 		var bufferPre = $('#tail pre');
-
-		//socket.on('connected',function(data){
-		//});
 
 		socket.on('error',function(data){
 			bufferPre.html('');
@@ -110,7 +109,7 @@
 			$('.message').css('display','none');
 			bufferPre.html('');
 			bufferPre.append(data.text.join("\n"));
-			document.title = data.filename + " - TailGate";
+			document.title = "TailGate";
 			if(autoscroll){
 				buffer.scrollTop(buffer.prop('scrollHeight'));
 			}
@@ -131,17 +130,17 @@
 		$('#button-autoscroll').click(function(){
 			autoscroll = !$(this).hasClass('active');
 		});
-		$('#button-open-file').click(openFile);
 
+                $('#button-filter').click(function(){
+                        filterApplied = !$(this).hasClass('active');
+                });
+
+		$('#button-open-file').click(openFile);
 		function openFile(filename) {
 			socket.emit('openFile',{});
 		}
 
-
-
-
 	});
-
 </script>
 </body>
 </html>

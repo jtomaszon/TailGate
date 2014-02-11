@@ -60,7 +60,6 @@ io.sockets.on('connection', function (socket) {
 		});
 	});
 
-
 	function startWatching(filename, socket) {
 		currentWatcher = fs.watch(filename, function(event){
 			fs.stat(filename, function(err,stat){
