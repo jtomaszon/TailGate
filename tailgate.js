@@ -26,6 +26,7 @@ io.sockets.on('connection', function (socket) {
 	socket.emit('connected');
 
 	socket.on('openFile', function (data) {
+		data.filename = '/opt/jboss/standalone/log/server.log';
 		fs.stat(data.filename, function(err, stat){
 
 			if(currentWatcher)

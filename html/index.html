@@ -3,8 +3,6 @@
 <head>
 	<title>TailGate</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-	<script src="http://netdna.bootstrapcdn.com/bootstrap/2.0.4/js/bootstrap.min.js"></script>
 	<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/2.0.4/css/bootstrap.min.css">
 	<script src="/socket.io/socket.io.js"></script>
 	<style type="text/css">
@@ -76,12 +74,7 @@
 </head>
 <body>
 <div id="controlbar">
-	<input type="text" id="filename-input">
-	<button id="button-open-file" class="btn btn-small btn-inverse"><i class="icon-search icon-white"></i> Open file</button>
-	<select name="file-selector" id="file-selector" disabled="disabled">
-		<option value="default">No previous files opened</option>
-	</select>
-	<button class="btn btn-small btn-inverse" id="button-reset-cookie"><i class="icon-trash icon-white"></i> Clear file history cookie</button>
+	<button id="button-open-file" class="btn btn-small btn-inverse"><i class="icon-search icon-white"></i> Open FLUIG log</button>
 	<button class="btn btn-small btn-inverse active" data-toggle="button" id="button-autoscroll"><i class="icon-refresh icon-white"></i> Autoscroll</button>
 
 </div>
@@ -89,43 +82,10 @@
 	<div class="well message">No file open yet</div>
 	<pre></pre>
 </div>
+
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="http://netdna.bootstrapcdn.com/bootstrap/2.0.4/js/bootstrap.min.js"></script>
 <script type="text/javascript">
-
-	// cookie handling! yum yum!
-	var CookieStore = (function() {
-
-		var filenames;
-
-		return {
-			save : function(filename){
-				this.getFiles();
-				var date = new Date();
-				date.setTime(date.getTime()+(365*24*60*60*1000));
-				var indexOfNewFilename = filenames.indexOf(filename);
-				if (indexOfNewFilename > -1) {
-					filenames.splice(indexOfNewFilename,1);
-				}
-				var newCookieValue = filename;
-				for(var i = 0; i < filenames.length; i++){
-					newCookieValue += '*'+filenames[i];
-				}
-				document.cookie = 'list='+newCookieValue+'; expires='+date.toGMTString()+'; path=/;';
-				filenames.unshift(filename);
-			},
-			reset : function() {
-				document.cookie = 'list=; expires=Fri, 27 Jul 2001 00:00:00 UTC; path=/;';
-				filenames = [];
-			},
-			getFiles : function() {
-                if(document.cookie == '') {
-                    filenames = [];
-                } else {
-                    filenames = document.cookie.split('list=')[1].split('*');
-                }
-				return filenames;
-			}
-		}
-	})();
 
 	// init script
 	$(function(){
@@ -138,13 +98,8 @@
 		var buffer = $('#tail');
 		var bufferPre = $('#tail pre');
 
-		socket.on('connected',function(data){
-			var previousFiles =	CookieStore.getFiles();
-			if(previousFiles.length > 0) {
-				updateDropdown();
-				openFile(previousFiles[0]);
-			}
-		});
+		//socket.on('connected',function(data){
+		//});
 
 		socket.on('error',function(data){
 			bufferPre.html('');
@@ -155,12 +110,10 @@
 			$('.message').css('display','none');
 			bufferPre.html('');
 			bufferPre.append(data.text.join("\n"));
-			CookieStore.save(data.filename);
 			document.title = data.filename + " - TailGate";
 			if(autoscroll){
 				buffer.scrollTop(buffer.prop('scrollHeight'));
 			}
-			updateDropdown();
 		});
 
 		socket.on('continuousTextData',function(data){
@@ -178,42 +131,10 @@
 		$('#button-autoscroll').click(function(){
 			autoscroll = !$(this).hasClass('active');
 		});
-		$('#button-reset-cookie').click(function(){
-			CookieStore.reset();
-			updateDropdown();
-		});
 		$('#button-open-file').click(openFile);
-		$('#filename-input').keypress(function(event){
-			if ( event.which == 13 ) {
-				event.preventDefault();
-				openFile();
-			}
-		});
-
-		$('#file-selector').change(function(){
-			openFile($(this).val());
-		});
-
-		function updateDropdown() {
-			var previousFiles =	CookieStore.getFiles();
-			if(previousFiles.length > 0) {
-				var selectContent = '';
-				for(var i = 0; i < previousFiles.length; i++) {
-					selectContent += '<option value="'+previousFiles[i]+'">'+previousFiles[i]+'</option>';
-				}
-				$('#file-selector').prop('disabled',false).html(selectContent);
-			} else {
-				$('#file-selector').prop('disabled',true).html('<option value="default">No previous files opened</option>');
-			}
-		}
 
 		function openFile(filename) {
-			var fileToOpen = (typeof filename === 'string') ? filename : $('#filename-input').val();
-			if(fileToOpen != '' && fileToOpen != null) {
-				socket.emit('openFile',{filename:fileToOpen});
-			} else {
-				$('.message').css('display','block').html('Enter a path to a file for tailing!');
-			}
+			socket.emit('openFile',{});
 		}
 
 
